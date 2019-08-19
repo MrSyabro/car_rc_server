@@ -4,8 +4,8 @@
 #include "esp_log.h"
 
 #define PWM_PERIOD				(1000)
-#define CAR_PIN_FORWARD		5
-#define CAR_PIN_BACK			4
+#define CAR_PIN_FORWARD		4
+#define CAR_PIN_BACK			5
 #define CAR_PIN_LEFT			14
 #define CAR_PIN_RIGHT			13
 #define CAR_PIN_MASK			((1ULL<<CAR_PIN_LEFT) | (1ULL<<CAR_PIN_RIGHT))
