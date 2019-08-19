@@ -1,0 +1,18 @@
+menu "CAR"
+
+config CAR_PORT
+    int "Port"
+    range 0 65535
+    default 1508
+    help
+        Local port the example server will listen on.
+        
+config STORE_HISTORY
+    bool "Store command history in flash"
+    default y
+    help
+        Linenoise line editing library provides functions to save and load
+        command history. If this option is enabled, initalizes a FAT filesystem
+        and uses it to store command history.
+
+endmenu
