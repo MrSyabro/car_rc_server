@@ -55,7 +55,8 @@ esp_err_t car_go(uint8_t  dir,
 			pwm_start();
 			break;
 		case CAR_GO_STOP:
-			pwm_stop(0x0);
+			pwm_set_duty(0, 0);
+			pwm_set_duty(1, 0;
 			break;
 		}
 
