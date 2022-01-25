@@ -5,9 +5,9 @@
 
 #define PWM_PERIOD				(1000)
 #define CAR_PIN_FORWARD		4
-#define CAR_PIN_BACK			5
+#define CAR_PIN_BACK			12
 #define CAR_PIN_LEFT			14
-#define CAR_PIN_RIGHT			13
+#define CAR_PIN_RIGHT			5
 #define CAR_PIN_MASK			((1ULL<<CAR_PIN_LEFT) | (1ULL<<CAR_PIN_RIGHT))
 
 static const char *TAG = "car";
@@ -18,7 +18,10 @@ const uint32_t pin_num[2] = {CAR_PIN_FORWARD, CAR_PIN_BACK};
 uint32_t duties[2] = { 0, 0 };
 
 // phase table, delay = (phase[x]/360)*PERIOD
-int16_t phases[2] = {0, 0};
+float phases[2] = {0, 0};
+
+int8_t turning = 0;
+int8_t power = 0;
 
 esp_err_t car_init()
 {
@@ -43,20 +46,27 @@ esp_err_t car_init()
 esp_err_t car_go(uint8_t  dir,
 									uint8_t streng)
 {
-	ESP_LOGI(TAG, "Motor %d set duty to %d!", dir, streng*4);
+  uint32_t motor_power = streng*4;
+  if (motor_power < 300) motor_power = 0;
+	ESP_LOGI(TAG, "Motor %d set duty to %d!", dir, motor_power);
 	switch (dir)
 		{
 		case CAR_GO_FORWARD:
-			ESP_ERROR_CHECK(pwm_set_duty(0, (uint32_t)streng*4));
+      if (power == -1) { ESP_ERROR_CHECK(pwm_set_duty(1, 0)); power = 0; }
+			ESP_ERROR_CHECK(pwm_set_duty(0, motor_power));
+      power = 1;
 			pwm_start();
 			break;
 		case CAR_GO_BACK:
-			ESP_ERROR_CHECK(pwm_set_duty(1, (uint32_t)streng*4));
+      if (power == 1) { ESP_ERROR_CHECK(pwm_set_duty(0, 0)); power = 0; }
+			ESP_ERROR_CHECK(pwm_set_duty(1, motor_power));
+      power = -1;
 			pwm_start();
 			break;
 		case CAR_GO_STOP:
 			pwm_set_duty(0, 0);
-			pwm_set_duty(1, 0;
+			pwm_set_duty(1, 0);
+      pwm_start();
 			break;
 		}
 
@@ -68,10 +78,14 @@ esp_err_t car_turn(uint8_t dir)
 	switch (dir)
 		{
 		case CAR_TURN_LEFT:
+      if (turning == -1) { gpio_set_level(CAR_PIN_RIGHT, 0); turning = 0; }
 			gpio_set_level(CAR_PIN_LEFT, 1);
+      turning = 1;
 			break;
 		case CAR_TURN_RIGHT:
+      if (turning == 1) { gpio_set_level(CAR_PIN_LEFT, 0); turning = 0; }
 			gpio_set_level(CAR_PIN_RIGHT, 1);
+      turning = -1;
 			break;
 		case CAR_TURN_STOP:
 			gpio_set_level(CAR_PIN_LEFT, 0);
